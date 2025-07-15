@@ -1,61 +1,227 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 📦 Laravel 12 Payment Gateway Integration with iPaymu
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**Bahasa Indonesia | English**
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📌 Deskripsi
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Proyek ini adalah contoh implementasi **Payment Gateway iPaymu** pada **Laravel 12**, mendukung:
+- Virtual Account (VA) — contoh: BCA VA.
+- Perhitungan biaya tambahan otomatis (1.8%).
+- Signature generation aman sesuai standar iPaymu.
+- Callback server-to-server untuk update status transaksi.
+- Tes endpoint callback lokal dengan **Ngrok**.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🚀 Fitur Utama
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+✅ Laravel 12  
+✅ Direct Payment API iPaymu (v2)  
+✅ Virtual Account (VA) — Contoh BCA  
+✅ Hitung fee dinamis 1.8%  
+✅ Callback / Webhook handler  
+✅ Logging callback ke `storage/logs/laravel.log`  
+✅ Form checkout sederhana  
+✅ Halaman `thanks` untuk menampilkan detail VA
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 📂 Struktur Utama
 
-## Laravel Sponsors
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+app/Http/Controllers/PaymentController.php
+resources/views/checkout.blade.php
+resources/views/thanks.blade.php
+routes/web.php
 
-### Premium Partners
+````
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## ⚙️ Requirements
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- PHP >= 8.1
+- Composer
+- Laravel 12.x
+- Ngrok (opsional, untuk tes callback di lokal)
+- Database (MySQL, SQLite, atau PostgreSQL)
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🔑 Konfigurasi Awal
 
-## Security Vulnerabilities
+1️⃣ **Clone repository**
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+git clone https://github.com/yourusername/your-repo.git
+cd your-repo
+````
 
-## License
+2️⃣ **Install dependency**
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+composer install
+```
+
+3️⃣ **Copy file `.env`**
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+4️⃣ **Set konfigurasi di `.env`**
+
+```env
+IPAYMU_VA=YOUR_VA_NUMBER
+IPAYMU_API_KEY=YOUR_API_KEY
+IPAYMU_URL=https://sandbox.ipaymu.com/api/v2/payment/direct
+```
+
+---
+
+## 🧾 Cara Kerja
+
+1️⃣ User mengisi **form checkout**.
+2️⃣ Laravel hit API iPaymu → signature dibuat dengan format **POST\:VA\:SHA256(BODY)\:APIKEY**.
+3️⃣ iPaymu balas data VA (`PaymentNo`, `Expired`, dll).
+4️⃣ Laravel redirect ke halaman **thanks**, menampilkan detail VA ke user.
+5️⃣ User bayar ke VA.
+6️⃣ iPaymu memanggil endpoint **callback** untuk update status order ke `paid`.
+
+---
+
+## 🌐 Jalankan Local Server
+
+```bash
+php artisan serve
+```
+
+Akses:
+
+```
+http://localhost:8000/checkout
+```
+
+---
+
+## 🔔 Jalankan Callback dengan Ngrok
+
+1️⃣ Jalankan Ngrok:
+
+```bash
+ngrok http 8000
+```
+
+2️⃣ Ganti `notifyUrl`:
+
+```env
+IPAYMU_NOTIFY_URL=https://your-ngrok-id.ngrok.io/callback
+```
+
+Atau di `PaymentController`:
+
+```php
+'notifyUrl' => 'https://your-ngrok-id.ngrok.io/callback'
+```
+
+3️⃣ Pastikan route `/callback` **bebas CSRF**:
+
+```php
+protected $except = [
+    '/callback',
+];
+```
+
+---
+
+## ✅ Database & Orders
+
+Contoh kolom:
+
+* `reference_id` — ID unik order.
+* `status` — `unpaid` | `paid`.
+* `ipaymu_transaction_id`
+* `paid_at`
+
+Saat callback masuk, Laravel:
+
+* Temukan `ReferenceId`
+* Tandai `status = paid`
+* Simpan `TransactionId` & `paid_at`.
+
+---
+
+## 📄 Contoh Tabel Orders
+
+```php
+Schema::create('orders', function (Blueprint $table) {
+    $table->id();
+    $table->string('reference_id')->unique();
+    $table->string('status')->default('unpaid');
+    $table->string('ipaymu_transaction_id')->nullable();
+    $table->timestamp('paid_at')->nullable();
+    $table->timestamps();
+});
+```
+
+---
+
+## ✅ Log Callback
+
+Semua callback disimpan ke `storage/logs/laravel.log`:
+
+```php
+\Log::info('iPaymu Callback:', $data);
+```
+
+---
+
+## ⚡ Tips Produksi
+
+✔️ Gunakan HTTPS untuk `notifyUrl` (wajib).
+✔️ Jangan expose API Key ke repo publik.
+✔️ Gunakan `.env` untuk semua kredensial.
+✔️ Simpan `reference_id` di database order agar callback bisa cocok.
+✔️ Gunakan webhook tester (Ngrok) untuk develop di local.
+
+---
+
+## 📌 License
+
+Open Source — bebas digunakan dan dimodifikasi.
+
+---
+
+## ✨ Kontak
+
+Proyek ini dibuat untuk keperluan belajar.
+Feel free untuk fork, clone, atau laporkan issue. 🚀
+
+````
+
+---
+
+## ✅ **Cara Pakai**
+
+1️⃣ Buat file `README.md` di root:  
+```bash
+touch README.md
+````
+
+2️⃣ Copy semua isi di atas, paste ke file itu.
+
+3️⃣ Commit & push:
+
+```bash
+git add README.md
+git commit -m "Add complete bilingual README"
+git push origin main
+```
+
+---
+
+
